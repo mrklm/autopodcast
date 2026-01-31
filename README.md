@@ -11,6 +11,14 @@ AutoPodcast prépare les fichiers **en amont**, de manière déterministe.
 
 ---
 
+## 👁️ Aperçu
+
+![Fenêtre general](screenshots/general.png)
+![Fenêtre options](screenshots/options.png)
+![Fenêtre aide](screenshots/aide.png)
+
+---
+
 ## Objectif du projet
 
 - Forcer un ordre de lecture clair et stable
@@ -31,8 +39,4 @@ mais à rendre **fiable** un environnement contraint.
 - Numérotation explicite des fichiers
 - Thème de couleurs persistant
 - Aide intégrée via un fichier Markdown
-
----
-
-## Structure du projet
 
