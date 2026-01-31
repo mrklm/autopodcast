@@ -7,9 +7,24 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [0.1.1] — 2026-01-31
+
+### Corrigé
+
+- Chargement des assets (image, aide) en mode application macOS (.app)
+- Chemins de ressources compatibles PyInstaller
+
+### Technique
+
+- Ajout de la fonction resource_path()
+- Correction de la persistance de la configuration utilisateur
+
+---
+
 ## [0.1.0] — 2026-01-31
 
 ### Ajouté
+
 - Application AutoPodcast (structure initiale)
 - Interface graphique Tkinter avec onglets
 - Onglet Options
@@ -21,6 +36,7 @@ et le versionnement suit le principe du *Semantic Versioning*.
 - Fichier `.gitignore` adapté au projet
 
 ### Technique
+
 - Définition centralisée de la version (`APP_VERSION`)
 - Utilisation de Pillow pour le redimensionnement d’image
 - Gestion des chemins via `pathlib`

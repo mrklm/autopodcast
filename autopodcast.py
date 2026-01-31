@@ -48,6 +48,18 @@ from tab_help import HelpTab
 
 from PIL import Image, ImageTk
 
+def resource_path(*parts: str) -> Path:
+    """
+    Chemin absolu vers une ressource.
+    Compatible exécution normale + PyInstaller (app/.app).
+    """
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        base = Path(sys._MEIPASS)
+    else:
+        base = Path(__file__).resolve().parent
+    return base.joinpath(*parts)
+
+
 
 # Dépendance externe : mutagen
 try:
@@ -61,8 +73,9 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "0.1.0"
-CONFIG_PATH = Path(__file__).resolve().parent / "config.json"
+APP_VERSION = "0.1.1"
+CONFIG_PATH = Path.home() / "Library" / "Application Support" / "AutoPodcast" / "config.json"
+CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 DEST_ROOT_DIRNAME = "PODCASTS"
 DEST_SUBDIR = "INBOX"
 
@@ -554,7 +567,7 @@ class GeneralTab(ttk.Frame):
         root.pack(fill="both", expand=True)
 
         # Image centrée
-        img_path = Path(__file__).resolve().parent / "assets" / "ar.png"
+        img_path = resource_path("assets", "ar.png")
         if img_path.exists():
             try:
                 img = Image.open(str(img_path))
