@@ -61,6 +61,7 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
+APP_VERSION = "0.1.0"
 CONFIG_PATH = Path(__file__).resolve().parent / "config.json"
 DEST_ROOT_DIRNAME = "PODCASTS"
 DEST_SUBDIR = "INBOX"
@@ -642,7 +643,7 @@ class GeneralTab(ttk.Frame):
 class AutoPodcastApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
-        self.title(APP_TITLE)
+        self.title(f"{APP_TITLE} v{APP_VERSION}")
         self.minsize(900, 680)
 
         self.stop_event = threading.Event()
