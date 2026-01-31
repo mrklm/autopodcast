@@ -1,0 +1,23 @@
+# Environnements Python
+.venv/
+venv/
+ENV/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+
+# Configuration utilisateur (runtime)
+config.json
+
+# Dépendances externes lourdes
+tools/
+
+# Fichiers personnels / docs de travail
+*.odt
+*.ods
+*.pdf
+
+# OS / éditeurs
+.DS_Store
+Thumbs.db
