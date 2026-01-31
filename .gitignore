@@ -13,6 +13,10 @@ config.json
 # Dépendances externes lourdes
 tools/
 
+# fichiers de build
+
+releases/
+
 # Fichiers personnels / docs de travail
 *.odt
 *.ods

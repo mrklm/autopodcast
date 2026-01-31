@@ -73,7 +73,7 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "0.1.1"
+APP_VERSION = "0.1.2"
 CONFIG_PATH = Path.home() / "Library" / "Application Support" / "AutoPodcast" / "config.json"
 CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 DEST_ROOT_DIRNAME = "PODCASTS"
@@ -303,23 +303,80 @@ def reset_metadata_keep_title(path: Path, title: str) -> None:
 # ffmpeg
 # ----------------------------
 
+def _resource_base_dir() -> Path:
+    """
+    Répertoire de base pour les ressources.
+
+    - En mode source : dossier du fichier .py
+    - En mode PyInstaller : sys._MEIPASS (répertoire de ressources extrait / bundle)
+    """
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        try:
+            return Path(meipass).resolve()
+        except Exception:
+            return Path(meipass)
+    return Path(__file__).resolve().parent
+
+
+def _macos_tools_subdir_names() -> List[str]:
+    """
+    Liste ordonnée des sous-dossiers possibles pour tools/ sur macOS.
+    Supporte par exemple :
+      - tools/macos/
+      - tools/macos-x86_64/
+      - tools/macos-arm64/
+    """
+    machine = platform.machine().lower()
+    names: List[str] = []
+    if machine in ("arm64", "aarch64"):
+        names += ["macos-arm64", "macos-arm", "darwin-arm64"]
+    else:
+        names += ["macos-x86_64", "macos-x64", "darwin-x86_64"]
+    names += ["macos", "darwin", "osx"]
+    return names
+
+
 def find_ffmpeg() -> Optional[Path]:
     """
     Cherche ffmpeg dans :
-    - tools/ffmpeg(.exe) à côté du script
-    - PATH
+    - tools/… embarqué (source ou PyInstaller)
+    - PATH (fallback)
     """
-    base = Path(__file__).resolve().parent
-    tools = base / "tools"
+    base = _resource_base_dir()
+    tools_root = base / "tools"
+
     candidates: List[Path] = []
+
     if _is_windows():
-        candidates.extend([tools / "ffmpeg.exe", tools / "ffmpeg"])
+        # Structures possibles : tools/ffmpeg.exe ou tools/windows*/ffmpeg.exe
+        candidates.extend([tools_root / "ffmpeg.exe", tools_root / "ffmpeg"])
+        for sub in ("windows", "win", "win32", "win64", "windows-x86_64", "windows-amd64"):
+            candidates.extend([tools_root / sub / "ffmpeg.exe", tools_root / sub / "ffmpeg"])
+    elif _is_macos():
+        # Structures possibles : tools/ffmpeg ou tools/macos-*/ffmpeg
+        candidates.append(tools_root / "ffmpeg")
+        for sub in _macos_tools_subdir_names():
+            candidates.append(tools_root / sub / "ffmpeg")
     else:
-        candidates.append(tools / "ffmpeg")
+        # Linux / autres : tools/ffmpeg ou tools/linux*/ffmpeg
+        candidates.append(tools_root / "ffmpeg")
+        for sub in ("linux", "linux-x86_64", "linux-x64", "linux-arm64", "linux-aarch64"):
+            candidates.append(tools_root / sub / "ffmpeg")
 
     for c in candidates:
-        if c.exists() and c.is_file():
-            return c
+        try:
+            if c.exists() and c.is_file():
+                # Best-effort : s'assurer que ffmpeg est exécutable sur POSIX
+                if not _is_windows():
+                    try:
+                        if not os.access(str(c), os.X_OK):
+                            os.chmod(str(c), c.stat().st_mode | 0o111)
+                    except Exception:
+                        pass
+                return c
+        except Exception:
+            continue
 
     which = shutil.which("ffmpeg")
     return Path(which) if which else None
