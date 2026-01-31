@@ -19,6 +19,21 @@ AutoPodcast prépare les fichiers **en amont**, de manière déterministe.
 
 ---
 
+## 📥 Téléchargement
+
+## 💾 Applications standalone (recommandé)
+
+- 🐧 **Linux**  
+  - à venir
+
+- 🍎 **macOS**
+  - [autopodcat-v0.1.2-macOS-x86_64.dmg](https://github.com/mrklm/autopodcast/releases)
+
+- 🪟 **Windows**  
+  - à venir
+
+--- 
+
 ## Objectif du projet
 
 - Forcer un ordre de lecture clair et stable

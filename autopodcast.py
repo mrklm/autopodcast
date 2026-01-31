@@ -611,14 +611,6 @@ class GeneralTab(ttk.Frame):
 
         self._build_ui()
 
-
-        # Appliquer thème au démarrage
-        if getattr(self, "current_theme_name", ""):
-            self.apply_theme(self.current_theme_name, save=False)
-            try:
-                self.tab_options.var_theme.set(self.current_theme_name)
-            except Exception:
-                pass
     def _build_ui(self) -> None:
         root = ttk.Frame(self, padding=12)
         root.pack(fill="both", expand=True)
@@ -730,6 +722,14 @@ class AutoPodcastApp(tk.Tk):
         self.current_theme_name = self.config_data.get("theme", default_theme) if default_theme else ""
         # UI
         self._build_ui()
+        
+        # Appliquer le thème persistant après création de l'UI
+        if self.current_theme_name:
+            self.apply_theme(self.current_theme_name, save=False)
+            try:
+                self.tab_options.var_theme.set(self.current_theme_name)
+            except Exception:
+                pass
 
         # Volumes
         self.refresh_volumes()
