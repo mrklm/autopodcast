@@ -687,7 +687,16 @@ class GeneralTab(ttk.Frame):
         log_frame = ttk.LabelFrame(root, text="Journal", padding=10)
         log_frame.pack(fill="both", expand=True, pady=6)
 
-        self.txt = tk.Text(log_frame, height=14, wrap="word")
+        self.txt = tk.Text(
+            log_frame,
+            height=14,
+            wrap="word",
+            bg="black",
+            fg="white",
+            insertbackground="white",
+            selectbackground="#444444",
+            selectforeground="white",
+        )
         self.txt.pack(fill="both", expand=True)
         self.txt.configure(state="disabled")
 
@@ -887,9 +896,24 @@ class AutoPodcastApp(tk.Tk):
         for w in walk(self):
             if isinstance(w, tk.Text):
                 try:
-                    w.configure(background=field, foreground=field_fg, insertbackground=field_fg)
+                    # Exception : le journal de l'onglet Général reste en blanc sur noir
+                    if hasattr(self, "tab_general") and getattr(self.tab_general, "txt", None) is w:
+                        w.configure(
+                            background="black",
+                            foreground="white",
+                            insertbackground="white",
+                            selectbackground="#444444",
+                            selectforeground="white",
+                        )
+                    else:
+                        w.configure(
+                            background=field,
+                            foreground=field_fg,
+                            insertbackground=field_fg,
+                        )
                 except Exception:
                     pass
+
             elif isinstance(w, tk.Canvas):
                 try:
                     w.configure(background=bg)

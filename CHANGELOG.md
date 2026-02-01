@@ -7,6 +7,14 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.1] — 2026-02-01
+
+### Ajouté
+
+ - Journal onglet général lettres blanches sur fond noir
+
+---
+
 ## [1.0] — 2026-02-01
 
 ### Ajouté
@@ -61,12 +69,3 @@ et le versionnement suit le principe du *Semantic Versioning*.
 - Gestion des chemins via `pathlib`
 - Dépendances listées dans `requirements.txt`
 
----
-
-## [À venir]
-
-### Prévu
-- Amélioration de la détection de ffmpeg
-- Messages d’erreur plus explicites
-- Gestion multi-plateforme affinée
-- Améliorations ergonomiques de l’interface
