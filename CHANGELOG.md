@@ -7,6 +7,25 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.0] — 2026-02-01
+
+### Ajouté
+
+ - Options de normalisation (simple ou double passe)
+
+### Technique
+
+- Nomralisation via ffmpeg --> dynaudnorm / loudnorm
+
+  mode 1 passe: (dynaudnorm)
+  ffmpeg -i input.mp3 -af dynaudnorm=f=150:g=15 output.mp3
+
+  mode 2 passe: (loudnorm)
+  ffmpeg -i input.mp3 -af loudnorm=I=-16:LRA=11:TP=-1.5:print_format=json -f null -
+  ffmpeg -i input.mp3 -af loudnorm=I=-16:LRA=11:TP=-1.5:measured_I=...:measured_LRA=...:measured_TP=...:measured_thresh=...:offset=...:linear=true:print_format=summary output.mp3
+
+---
+
 ## [0.1.1] — 2026-01-31
 
 ### Corrigé

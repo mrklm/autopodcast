@@ -110,6 +110,9 @@ class OptionsTab(ttk.Frame):
         self.var_clean_dest = tk.BooleanVar(value=True)
 
         self.var_theme = tk.StringVar(value=getattr(self.app, "current_theme_name", ""))
+        self.var_audio_norm_mode = tk.StringVar(value=getattr(self.app, "audio_norm_mode", "Rapide (1 passe)"))
+        self.var_audio_norm_enabled = tk.BooleanVar(value=bool(getattr(self.app, "config_data", {}).get("audio_norm_enabled", False)))
+
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -177,8 +180,38 @@ class OptionsTab(ttk.Frame):
         ttk.Checkbutton(
             opt_frame,
             text="Effacer les fichiers temporaires à la fin",
-            variable=self.var_clean_temp
+            variable=self.var_clean_temp,
         ).grid(row=5, column=0, columnspan=3, sticky="w", pady=(6, 0))
+
+        # Traitement du son
+        snd_frame = ttk.LabelFrame(root, text="Traitement du son", padding=10)
+        snd_frame.pack(fill="x", pady=6)
+
+        ttk.Checkbutton(
+            snd_frame,
+            text="Activer la normalisation",
+            variable=self.var_audio_norm_enabled,
+            command=self._on_audio_norm_toggle,
+        ).grid(row=0, column=0, sticky="w")
+
+        self.cmb_audio_norm = ttk.Combobox(
+            snd_frame,
+            textvariable=self.var_audio_norm_mode,
+            values=["Rapide (1 passe)", "Avec analyse (2 passes)"],
+            state="readonly" if self.var_audio_norm_enabled.get() else "disabled",
+            width=26,
+        )
+        self.cmb_audio_norm.grid(row=0, column=1, sticky="w", padx=8)
+        self.cmb_audio_norm.bind("<<ComboboxSelected>>", self._on_audio_norm_change)
+        self._set_audio_norm_widgets_state()
+        snd_frame.columnconfigure(1, weight=1)
+
+        ttk.Label(
+            snd_frame,
+            text="Rapide : 1 passe (plus rapide).  Avec analyse : 2 passes (plus constant).",
+            wraplength=760,
+            justify="left"
+        ).grid(row=1, column=0, columnspan=3, sticky="w", pady=(6, 0))
 
     def _pick_temp_dir(self) -> None:
         path = filedialog.askdirectory(title="Sélectionner un répertoire temporaire")
@@ -190,3 +223,41 @@ class OptionsTab(ttk.Frame):
         theme_name = self.var_theme.get().strip()
         if theme_name and hasattr(self.app, "apply_theme"):
             self.app.apply_theme(theme_name)
+
+    def _set_audio_norm_widgets_state(self) -> None:
+        enabled = bool(self.var_audio_norm_enabled.get())
+        # La combobox est grisée tant que la normalisation n'est pas activée.
+        self.cmb_audio_norm.configure(state="readonly" if enabled else "disabled")
+
+    def _on_audio_norm_toggle(self) -> None:
+        enabled = bool(self.var_audio_norm_enabled.get())
+        self._set_audio_norm_widgets_state()
+
+        # Persistance côté application
+        try:
+            setattr(self.app, "audio_norm_enabled", enabled)
+            if not hasattr(self.app, "config_data"):
+                self.app.config_data = {}
+            self.app.config_data["audio_norm_enabled"] = enabled
+            if hasattr(self.app, "_save_config"):
+                self.app._save_config()
+        except Exception:
+            pass
+
+    def _on_audio_norm_change(self, event=None) -> None:
+        # Si la normalisation est désactivée, ignorer les changements.
+        if not bool(self.var_audio_norm_enabled.get()):
+            return
+
+        mode = self.var_audio_norm_mode.get().strip()
+
+        # Persistance côté application
+        try:
+            setattr(self.app, "audio_norm_mode", mode)
+            if not hasattr(self.app, "config_data"):
+                self.app.config_data = {}
+            self.app.config_data["audio_norm_mode"] = mode
+            if hasattr(self.app, "_save_config"):
+                self.app._save_config()
+        except Exception:
+            pass

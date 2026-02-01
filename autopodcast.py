@@ -73,7 +73,7 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "0.1.2"
+APP_VERSION = "1.0"
 CONFIG_PATH = Path.home() / "Library" / "Application Support" / "AutoPodcast" / "config.json"
 CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 DEST_ROOT_DIRNAME = "PODCASTS"
@@ -720,6 +720,10 @@ class AutoPodcastApp(tk.Tk):
         self.config_data = self._load_config()
         default_theme = list(THEMES.keys())[0] if THEMES else ""
         self.current_theme_name = self.config_data.get("theme", default_theme) if default_theme else ""
+        # Traitement du son (persistant)
+        self.audio_norm_mode = self.config_data.get("audio_norm_mode", "Rapide (1 passe)")
+        self.config_data["audio_norm_mode"] = self.audio_norm_mode
+
         # UI
         self._build_ui()
         
@@ -806,6 +810,7 @@ class AutoPodcastApp(tk.Tk):
                 return {}
         return {}
 
+        data["audio_norm_mode"] = getattr(self, "audio_norm_mode", "Rapide (1 passe)")
     def _save_config(self) -> None:
         try:
             data = dict(getattr(self, "config_data", {}))
