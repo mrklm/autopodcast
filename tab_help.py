@@ -26,8 +26,19 @@ class HelpTab(ttk.Frame):
         frame = ttk.Frame(root)
         frame.pack(fill="both", expand=True)
 
-        self.txt = tk.Text(frame, wrap="word")
-        self.txt.pack(side="left", fill="both", expand=True)
+        self.txt = tk.Text(
+            frame,
+            wrap="word",
+            bg="black",
+            fg="white",
+            insertbackground="white",
+            selectbackground="#444444",
+            selectforeground="white",
+            font=("Menlo", 14),
+        )
+        self.txt.pack(fill="both", expand=True)
+        self.txt.configure(state="disabled")
+
 
         sb = ttk.Scrollbar(frame, orient="vertical", command=self.txt.yview)
         sb.pack(side="right", fill="y")

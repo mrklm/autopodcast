@@ -52,6 +52,7 @@ mais à rendre **fiable** un environnement contraint.
 - Conversion et traitement audio via ffmpeg
 - Écriture de métadonnées (ID3)
 - Numérotation explicite des fichiers
+- options de normalisation
 - Thème de couleurs persistant
 - Aide intégrée via un fichier Markdown
 

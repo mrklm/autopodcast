@@ -14,8 +14,8 @@ Problèmes fréquents :
 - tri alphabétique approximatif,
 - métadonnées partiellement ignorées.
 
-AutoPodcast prépare les fichiers **en amont** pour que l’autoradio n’ait plus à “réfléchir”.  
-Le but n’est pas d’être intelligent, mais d’être **prévisible**.
+AutoPodcast prépare les fichiers en amont pour que l’autoradio n’ait plus à “réfléchir”.  
+Le but n’est pas d’être intelligent, mais d’être prévisible.
 
 ---
 
@@ -23,8 +23,7 @@ Le but n’est pas d’être intelligent, mais d’être **prévisible**.
 
 1. Sélectionner un dossier contenant des fichiers audio (podcasts, émissions, conférences…).
 2. Choisir un profil MP3 (bitrate, mono/stéréo, normalisation si activée).
-3. Choisir un thème (optionnel, mémorisé).
-4. Lancer le traitement.
+3. Lancer le traitement.
 
 Le programme :
 
@@ -79,8 +78,8 @@ AutoPodcast force donc :
 ## Philosophie
 
 AutoPodcast ne cherche pas à remplacer une application de podcast moderne.  
-Il cherche à rendre **fiable** un environnement qui ne l’est pas.
+Il cherche à rendre fiable un environnement qui ne l’est pas.
 
 Moins d’intelligence embarquée,   
 
-Plus d'autoradios qui lit lesent les fichiers présents sur la clé USB
+plus d'autoradios qui lisent les fichiers presents sur la clé USB.

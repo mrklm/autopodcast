@@ -7,6 +7,15 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.1.1] — 2026-02-01
+
+### Ajouté
+
+ - Section aide en lettres blanches sur fond noir
+ - Taille police aide = 14
+
+---
+
 ## [1.1] — 2026-02-01
 
 ### Ajouté

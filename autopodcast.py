@@ -73,7 +73,7 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.0"
+APP_VERSION = "1.1.1"
 CONFIG_PATH = Path.home() / "Library" / "Application Support" / "AutoPodcast" / "config.json"
 CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 DEST_ROOT_DIRNAME = "PODCASTS"
@@ -905,6 +905,19 @@ class AutoPodcastApp(tk.Tk):
                             selectbackground="#444444",
                             selectforeground="white",
                         )
+
+                    # Exception : l'onglet Aide reste en blanc sur noir + police 14
+                    elif hasattr(self, "tab_help") and getattr(self.tab_help, "txt", None) is w:
+                        w.configure(
+                            background="black",
+                            foreground="white",
+                            insertbackground="white",
+                            selectbackground="#444444",
+                            selectforeground="white",
+                            font=("Menlo", 14),
+                        )
+
+                    # Autres tk.Text : gérés par le thème
                     else:
                         w.configure(
                             background=field,
@@ -913,6 +926,7 @@ class AutoPodcastApp(tk.Tk):
                         )
                 except Exception:
                     pass
+
 
             elif isinstance(w, tk.Canvas):
                 try:
