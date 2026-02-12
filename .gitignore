@@ -25,3 +25,11 @@ releases/
 # OS / éditeurs
 .DS_Store
 Thumbs.db
+
+# LibreOffice lock files
+.~lock.*
+.~*
+
+# LibreOffice temp / backup
+*.tmp
+*.bak
