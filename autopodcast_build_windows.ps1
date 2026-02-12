@@ -80,6 +80,7 @@ $addTools  = "tools;tools"
   --onedir `
   --clean `
   --noconfirm `
+  --icon "assets\ar.ico" `
   --add-data $addAssets `
   --add-data $addTools `
   --hidden-import "PIL._imagingtk" `

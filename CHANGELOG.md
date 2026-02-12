@@ -8,6 +8,12 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.1.7] — 2026-02-12
+
+### Modifié
+
+ - Icône prise en compte pour le build windows
+
 ## [1.1.6] — 2026-02-12
 
 ### Modifié

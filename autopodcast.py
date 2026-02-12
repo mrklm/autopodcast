@@ -90,7 +90,7 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.1.6"
+APP_VERSION = "1.1.7"
 
 
 DEST_ROOT_DIRNAME = "PODCASTS"
