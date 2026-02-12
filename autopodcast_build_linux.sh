@@ -79,8 +79,8 @@ cd "${ROOT_DIR}"
 require_file "${ROOT_DIR}/${ENTRY_PY}"
 require_file "${ROOT_DIR}/tab_options.py"
 require_file "${ROOT_DIR}/tab_help.py"
-require_file "${ROOT_DIR}/AIDE.md"
 require_dir  "${ROOT_DIR}/assets"
+require_file "${ROOT_DIR}/assets/AIDE.md"
 require_dir  "${ROOT_DIR}/tools"
 
 # Vérifier ffmpeg (embarqué)
@@ -125,7 +125,6 @@ pyinstaller \
   --noconfirm \
   --add-data "assets:assets" \
   --add-data "tools:tools" \
-  --add-data "AIDE.md:." \
   "${ENTRY_PY}"
 
 # -----------------------------
@@ -168,9 +167,16 @@ chmod +x "${APPDIR}/AppRun"
 # -----------------------------
 if [[ ! -f "${APPIMAGETOOL_BIN}" ]]; then
   echo "⬇️ Téléchargement appimagetool…"
-  curl -L "${APPIMAGETOOL_URL}" -o "${APPIMAGETOOL_BIN}"
+  if command -v curl >/dev/null 2>&1; then
+    curl -L "${APPIMAGETOOL_URL}" -o "${APPIMAGETOOL_BIN}"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -O "${APPIMAGETOOL_BIN}" "${APPIMAGETOOL_URL}"
+  else
+    die "Ni curl ni wget n'est disponible pour télécharger appimagetool."
+  fi
   chmod +x "${APPIMAGETOOL_BIN}"
 fi
+
 
 # -----------------------------
 # Build AppImage
