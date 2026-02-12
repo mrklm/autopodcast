@@ -5,6 +5,16 @@ Toutes les modifications notables du projet AutoPodcast sont documentées ici.
 Le format s’inspire de *Keep a Changelog*  
 et le versionnement suit le principe du *Semantic Versioning*.
 
+
+---
+
+
+## [1.1.2] — 2026-02-12
+
+### Modifié
+
+ - Efface réelement les métadonnées (case cochée par défaut dans options)
+
 ---
 
 ## [1.1.1] — 2026-02-01

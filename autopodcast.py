@@ -73,7 +73,7 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.1.1"
+APP_VERSION = "1.1.2"
 CONFIG_PATH = Path.home() / "Library" / "Application Support" / "AutoPodcast" / "config.json"
 CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 DEST_ROOT_DIRNAME = "PODCASTS"
@@ -1213,7 +1213,9 @@ class AutoPodcastApp(tk.Tk):
                     bitrate=bitrate,
                     stop_event=self.stop_event,
                     proc_holder=self.current_proc_holder,
+                    strip_metadata=bool(self.tab_options.var_reset_meta.get()),
                 )
+
 
                 if self.tab_options.var_reset_meta.get():
                     reset_metadata_keep_title(tmp_out, title)
