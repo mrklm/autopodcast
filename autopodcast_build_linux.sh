@@ -124,6 +124,9 @@ pyinstaller \
   --noconfirm \
   --add-data "assets:assets" \
   --add-data "tools:tools" \
+  --hidden-import "PIL._imagingtk" \
+  --hidden-import "PIL._tkinter_finder" \
+  --hidden-import "PIL.ImageTk" \
   "${ENTRY_PY}"
 
 # -----------------------------

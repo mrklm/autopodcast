@@ -8,6 +8,22 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.1.5] — 2026-02-12
+
+### Modifié
+
+ - Problème d'affichage de l'image du programme sous linux
+
+---
+
+## [1.1.4] — 2026-02-12
+
+### Modifié
+
+ - Problème d'affichage de l'image du programme sous linux
+
+---
+
 ## [1.1.3] — 2026-02-12
 
 ### Modifié

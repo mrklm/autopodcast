@@ -90,7 +90,7 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.1.4"
+APP_VERSION = "1.1.5"
 CONFIG_PATH = Path.home() / "Library" / "Application Support" / "AutoPodcast" / "config.json"
 CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 DEST_ROOT_DIRNAME = "PODCASTS"
@@ -665,8 +665,8 @@ class GeneralTab(ttk.Frame):
                 self._img_ref = ImageTk.PhotoImage(img)
                 lbl_img = ttk.Label(root, image=self._img_ref)
                 lbl_img.pack(anchor="center", pady=(0, 10))
-            except Exception:
-                ttk.Label(root, text="[Image ar.png non chargée]").pack(anchor="center", pady=(0, 10))
+            except Exception as e:
+                ttk.Label(root, text=f"[Image ar.png non chargée] {type(e).__name__}: {e}").pack(anchor="center", pady=(0, 10))
         else:
             ttk.Label(root, text="[assets/ar.png manquant]").pack(anchor="center", pady=(0, 10))
 
