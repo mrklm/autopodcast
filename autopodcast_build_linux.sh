@@ -22,11 +22,10 @@ BUILD_DIR="${ROOT_DIR}/build"
 DIST_DIR="${ROOT_DIR}/dist"
 APPDIR="${ROOT_DIR}/AppDir"
 VENV_DIR="${ROOT_DIR}/.venv-build"
-SPEC_GLOB="${ROOT_DIR}"/*.spec
 
 # AppImage tooling
 APPIMAGETOOL_BIN="${ROOT_DIR}/appimagetool-x86_64.AppImage"
-APPIMAGETOOL_URL="https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage"
+APPIMAGETOOL_URL="https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
 
 die() { echo "❌ $*" >&2; exit 1; }
 
@@ -98,7 +97,7 @@ fi
 # Nettoyage début
 # -----------------------------
 rm -rf "${BUILD_DIR}" "${DIST_DIR}" "${APPDIR}" "${RELEASES_DIR}" "${VENV_DIR}"
-rm -f ${SPEC_GLOB} 2>/dev/null || true
+rm -f "${ROOT_DIR}/"*.spec 2>/dev/null || true
 mkdir -p "${RELEASES_DIR}"
 
 # -----------------------------
@@ -147,9 +146,26 @@ Type=Application
 Categories=Audio;
 DESKTOP
 
+# Icône AppImage
+mkdir -p "${APPDIR}/usr/share/icons/hicolor/256x256/apps"
+
+cp assets/ar.png \
+   "${APPDIR}/usr/share/icons/hicolor/256x256/apps/autopodcast.png"
+
+# Important pour appimagetool
+cp "${APPDIR}/usr/share/icons/hicolor/256x256/apps/autopodcast.png" \
+   "${APPDIR}/.DirIcon"
+
+
+# appimagetool attend un .desktop à la racine de l'AppDir
+cp "${APPDIR}/usr/share/applications/autopodcast.desktop" "${APPDIR}/autopodcast.desktop"
+
+
 # Icône : assets/ar.png -> autopodcast.png
 if [[ -f "${ROOT_DIR}/assets/ar.png" ]]; then
-  cp "${ROOT_DIR}/assets/ar.png" "${APPDIR}/usr/share/icons/hicolor/256x256/apps/autopodcast.png"
+    cp "${ROOT_DIR}/assets/ar.png" "${APPDIR}/usr/share/icons/hicolor/256x256/apps/autopodcast.png"
+    cp "${APPDIR}/usr/share/icons/hicolor/256x256/apps/autopodcast.png" "${APPDIR}/autopodcast.png"
+
 else
   echo "⚠️ Icône non trouvée : assets/ar.png (AppImage ok, mais icône absente)."
 fi
@@ -165,6 +181,16 @@ chmod +x "${APPDIR}/AppRun"
 # -----------------------------
 # appimagetool
 # -----------------------------
+
+# Si un vieux appimagetool invalide traîne (ex: "Not Found"), on le supprime
+if [[ -f "${APPIMAGETOOL_BIN}" ]]; then
+  if ! head -c 4 "${APPIMAGETOOL_BIN}" | grep -q $'\x7fELF'; then
+    echo "⚠️ appimagetool existant invalide (pas un ELF) : suppression et re-téléchargement."
+    rm -f "${APPIMAGETOOL_BIN}"
+    sync
+  fi
+fi
+
 if [[ ! -f "${APPIMAGETOOL_BIN}" ]]; then
   echo "⬇️ Téléchargement appimagetool…"
   if command -v curl >/dev/null 2>&1; then
@@ -174,6 +200,19 @@ if [[ ! -f "${APPIMAGETOOL_BIN}" ]]; then
   else
     die "Ni curl ni wget n'est disponible pour télécharger appimagetool."
   fi
+
+  # Vérification : fichier non vide
+  if [[ ! -s "${APPIMAGETOOL_BIN}" ]]; then
+    die "Téléchargement appimagetool vide."
+  fi
+
+  # Vérification : signature ELF (évite 404 HTML)
+  if ! head -c 4 "${APPIMAGETOOL_BIN}" | grep -q $'\x7fELF'; then
+    echo "Contenu téléchargé invalide :"
+    head -n 3 "${APPIMAGETOOL_BIN}" || true
+    die "appimagetool invalide (probable 404 ou page HTML)."
+  fi
+
   chmod +x "${APPIMAGETOOL_BIN}"
 fi
 
@@ -189,11 +228,12 @@ fi
 tar -czf "${RELEASES_DIR}/${TAR_OUT}" -C "${DIST_DIR}" "${APP_NAME}"
 
 # -----------------------------
-# SHA256
+# SHA256 (fichiers .sha256 séparés)
 # -----------------------------
 (
   cd "${RELEASES_DIR}"
-  sha256sum "${APPIMAGE_OUT}" "${TAR_OUT}" > "${SHA_OUT}"
+  sha256sum "${APPIMAGE_OUT}" > "${APPIMAGE_OUT}.sha256"
+  sha256sum "${TAR_OUT}" > "${TAR_OUT}.sha256"
 )
 
 # -----------------------------
@@ -201,7 +241,7 @@ tar -czf "${RELEASES_DIR}/${TAR_OUT}" -C "${DIST_DIR}" "${APP_NAME}"
 # -----------------------------
 deactivate || true
 rm -rf "${BUILD_DIR}" "${DIST_DIR}" "${APPDIR}" "${VENV_DIR}"
-rm -f ${SPEC_GLOB} 2>/dev/null || true
+rm -f "${ROOT_DIR}/"*.spec 2>/dev/null || true
 
 echo "✅ Build terminé"
 echo "📦 Sortie : ${RELEASES_DIR}"
