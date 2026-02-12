@@ -49,17 +49,33 @@ from tab_help import HelpTab
 from PIL import Image, ImageTk
 
 def resource_path(*parts: str) -> Path:
+    """
+    Résout les ressources en mode source + PyInstaller (onedir/onefile).
+    Gère le cas PyInstaller où sys._MEIPASS pointe sur .../_internal.
+    """
     if getattr(sys, "frozen", False):
-        # Mode PyInstaller
-        if hasattr(sys, "_MEIPASS"):
-            base = Path(sys._MEIPASS)
-        else:
-            base = Path(sys.executable).resolve().parent
-    else:
-        base = Path(__file__).resolve().parent
+        candidates = []
 
-    p = base.joinpath(*parts)
-    return p
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            mp = Path(meipass)
+            candidates.append(mp)          # ex: .../_internal
+            candidates.append(mp.parent)   # ex: .../ (où se trouvent souvent assets/)
+
+        # Dossier de l'exécutable (très fiable en onedir)
+        candidates.append(Path(sys.executable).resolve().parent)
+
+        for base in candidates:
+            p = base.joinpath(*parts)
+            if p.exists():
+                return p
+
+        # Fallback (pour afficher un chemin quand même)
+        return candidates[-1].joinpath(*parts)
+
+    # Mode source
+    return Path(__file__).resolve().parent.joinpath(*parts)
+
 
 
 # Dépendance externe : mutagen
