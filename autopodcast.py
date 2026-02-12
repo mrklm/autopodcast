@@ -90,9 +90,9 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.1.5"
-CONFIG_PATH = Path.home() / "Library" / "Application Support" / "AutoPodcast" / "config.json"
-CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+APP_VERSION = "1.1.6"
+
+
 DEST_ROOT_DIRNAME = "PODCASTS"
 DEST_SUBDIR = "INBOX"
 
@@ -112,6 +112,24 @@ def _is_macos() -> bool:
 def _is_linux() -> bool:
     return sys.platform.startswith("linux")
 
+def _default_config_path() -> Path:
+    if _is_windows():
+        appdata = os.environ.get("APPDATA")
+        if appdata:
+            return Path(appdata) / "AutoPodcast" / "config.json"
+        return Path.home() / "AppData" / "Roaming" / "AutoPodcast" / "config.json"
+
+    if _is_macos():
+        return Path.home() / "Library" / "Application Support" / "AutoPodcast" / "config.json"
+
+    # Linux
+    xdg = os.environ.get("XDG_CONFIG_HOME")
+    if xdg:
+        return Path(xdg) / "AutoPodcast" / "config.json"
+    return Path.home() / ".config" / "AutoPodcast" / "config.json"
+
+CONFIG_PATH = _default_config_path()
+CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 def detect_volumes() -> List[str]:
     """
@@ -330,17 +348,26 @@ def reset_metadata_keep_title(path: Path, title: str) -> None:
 def _resource_base_dir() -> Path:
     """
     Répertoire de base pour les ressources.
-
-    - En mode source : dossier du fichier .py
-    - En mode PyInstaller : sys._MEIPASS (répertoire de ressources extrait / bundle)
+    Gère PyInstaller onedir où sys._MEIPASS peut pointer sur .../_internal.
     """
-    meipass = getattr(sys, "_MEIPASS", None)
-    if meipass:
-        try:
-            return Path(meipass).resolve()
-        except Exception:
-            return Path(meipass)
+    if getattr(sys, "frozen", False):
+        candidates: List[Path] = []
+
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            mp = Path(meipass)
+            candidates.append(mp)        # .../_internal
+            candidates.append(mp.parent) # .../
+
+        candidates.append(Path(sys.executable).resolve().parent)  # dossier de l'exe
+
+        for base in candidates:
+            if base.exists():
+                return base
+        return candidates[-1]
+
     return Path(__file__).resolve().parent
+
 
 
 def _macos_tools_subdir_names() -> List[str]:
@@ -857,11 +884,11 @@ class AutoPodcastApp(tk.Tk):
                 return {}
         return {}
 
-        data["audio_norm_mode"] = getattr(self, "audio_norm_mode", "Rapide (1 passe)")
     def _save_config(self) -> None:
         try:
             data = dict(getattr(self, "config_data", {}))
             data["theme"] = getattr(self, "current_theme_name", "")
+            data["audio_norm_mode"] = getattr(self, "audio_norm_mode", "Rapide (1 passe)")
             CONFIG_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         except Exception:
             return

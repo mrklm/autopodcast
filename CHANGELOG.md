@@ -8,6 +8,14 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.1.6] — 2026-02-12
+
+### Modifié
+
+ - Adaptation du script autopodcast.py pour windows (chemins d'outils et image)
+
+---
+
 ## [1.1.5] — 2026-02-12
 
 ### Modifié
