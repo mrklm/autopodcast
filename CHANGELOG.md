@@ -8,6 +8,14 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.1.3] — 2026-02-12
+
+### Modifié
+
+ - Nettoyage d'incohérences dans le script en rapport avec les commandes pour éffacer 
+   les métadonnées
+
+---
 
 ## [1.1.2] — 2026-02-12
 

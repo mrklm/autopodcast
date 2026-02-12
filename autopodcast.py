@@ -73,7 +73,7 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.1.2"
+APP_VERSION = "1.1.3"
 CONFIG_PATH = Path.home() / "Library" / "Application Support" / "AutoPodcast" / "config.json"
 CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 DEST_ROOT_DIRNAME = "PODCASTS"
@@ -281,12 +281,24 @@ def read_mp3_title(path: Path) -> str:
         pass
     return path.stem
 
-
 def reset_metadata_keep_title(path: Path, title: str) -> None:
     """Efface toutes les métadonnées et conserve uniquement TIT2. Écrit ID3v2.3."""
     if MUTAGEN_IMPORT_ERROR is not None or ID3 is None:
         return
     try:
+        # 1) Tentative d'effacement générique (ID3, APEv2, etc.) si mutagen sait le faire
+        try:
+            from mutagen import File as MutagenFile  # type: ignore
+            mf = MutagenFile(str(path))
+            if mf is not None:
+                try:
+                    mf.delete()
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        # 2) Réécriture propre : ID3 minimal avec uniquement le titre
         try:
             tags = ID3(str(path))
         except ID3NoHeaderError:
@@ -297,11 +309,6 @@ def reset_metadata_keep_title(path: Path, title: str) -> None:
         tags.save(str(path), v2_version=3)
     except Exception:
         return
-
-
-# ----------------------------
-# ffmpeg
-# ----------------------------
 
 def _resource_base_dir() -> Path:
     """
@@ -389,7 +396,9 @@ def ffmpeg_convert_to_mp3(
     bitrate: str,
     stop_event: threading.Event,
     proc_holder: Dict[str, Optional[subprocess.Popen]],
+    strip_metadata: bool = False,
 ) -> None:
+
     """Convertit src -> dst en MP3 CBR 44.1 kHz Joint Stereo via ffmpeg."""
     dst.parent.mkdir(parents=True, exist_ok=True)
 
@@ -401,6 +410,13 @@ def ffmpeg_convert_to_mp3(
         "error",
         "-i",
         str(src),
+    ]
+
+    # Si demandé : ne pas copier metadata/chapters depuis la source
+    if strip_metadata:
+        cmd += ["-map_metadata", "-1", "-map_chapters", "-1"]
+
+    cmd += [
         "-vn",
         "-ac",
         "2",
@@ -412,8 +428,13 @@ def ffmpeg_convert_to_mp3(
         bitrate,
         "-joint_stereo",
         "1",
-        str(dst),
     ]
+
+    # Si demandé : sortie ID3 plus “autoradio-friendly”
+    if strip_metadata:
+        cmd += ["-write_id3v1", "0", "-id3v2_version", "3"]
+
+    cmd += [str(dst)]
 
     if stop_event.is_set():
         raise RuntimeError("STOP_REQUESTED")
@@ -1217,8 +1238,9 @@ class AutoPodcastApp(tk.Tk):
                 )
 
 
-                if self.tab_options.var_reset_meta.get():
+                if bool(self.tab_options.var_reset_meta.get()):
                     reset_metadata_keep_title(tmp_out, title)
+
 
                 # Copie vers clé
                 dest_file = dest_inbox / out_name
