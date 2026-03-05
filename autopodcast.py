@@ -454,10 +454,6 @@ def ffmpeg_convert_to_mp3(
         "error",
         "-i",
         str(src),
-<<<<<<< HEAD
-        # Si demandé : ne pas copier metadata/chapters depuis la source
-        * (["-map_metadata", "-1", "-map_chapters", "-1"] if strip_metadata else []),
-=======
     ]
 
     # Si demandé : ne pas copier metadata/chapters depuis la source
@@ -465,7 +461,6 @@ def ffmpeg_convert_to_mp3(
         cmd += ["-map_metadata", "-1", "-map_chapters", "-1"]
 
     cmd += [
->>>>>>> 217adb5880d4b66aaa2bb91ee047f8c566f6f5dd
         "-vn",
         "-ac",
         "2",
