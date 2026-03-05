@@ -50,14 +50,31 @@ from PIL import Image, ImageTk
 
 def resource_path(*parts: str) -> Path:
     """
-    Chemin absolu vers une ressource.
-    Compatible exécution normale + PyInstaller (app/.app).
+    Résout les ressources en mode source + PyInstaller (onedir/onefile).
+    Gère le cas PyInstaller où sys._MEIPASS pointe sur .../_internal.
     """
-    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-        base = Path(sys._MEIPASS)
-    else:
-        base = Path(__file__).resolve().parent
-    return base.joinpath(*parts)
+    if getattr(sys, "frozen", False):
+        candidates = []
+
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            mp = Path(meipass)
+            candidates.append(mp)          # ex: .../_internal
+            candidates.append(mp.parent)   # ex: .../ (où se trouvent souvent assets/)
+
+        # Dossier de l'exécutable (très fiable en onedir)
+        candidates.append(Path(sys.executable).resolve().parent)
+
+        for base in candidates:
+            p = base.joinpath(*parts)
+            if p.exists():
+                return p
+
+        # Fallback (pour afficher un chemin quand même)
+        return candidates[-1].joinpath(*parts)
+
+    # Mode source
+    return Path(__file__).resolve().parent.joinpath(*parts)
 
 
 
@@ -73,9 +90,9 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.1.2"
-CONFIG_PATH = Path.home() / "Library" / "Application Support" / "AutoPodcast" / "config.json"
-CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+APP_VERSION = "1.1.7"
+
+
 DEST_ROOT_DIRNAME = "PODCASTS"
 DEST_SUBDIR = "INBOX"
 
@@ -95,6 +112,24 @@ def _is_macos() -> bool:
 def _is_linux() -> bool:
     return sys.platform.startswith("linux")
 
+def _default_config_path() -> Path:
+    if _is_windows():
+        appdata = os.environ.get("APPDATA")
+        if appdata:
+            return Path(appdata) / "AutoPodcast" / "config.json"
+        return Path.home() / "AppData" / "Roaming" / "AutoPodcast" / "config.json"
+
+    if _is_macos():
+        return Path.home() / "Library" / "Application Support" / "AutoPodcast" / "config.json"
+
+    # Linux
+    xdg = os.environ.get("XDG_CONFIG_HOME")
+    if xdg:
+        return Path(xdg) / "AutoPodcast" / "config.json"
+    return Path.home() / ".config" / "AutoPodcast" / "config.json"
+
+CONFIG_PATH = _default_config_path()
+CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 def detect_volumes() -> List[str]:
     """
@@ -281,12 +316,24 @@ def read_mp3_title(path: Path) -> str:
         pass
     return path.stem
 
-
 def reset_metadata_keep_title(path: Path, title: str) -> None:
     """Efface toutes les métadonnées et conserve uniquement TIT2. Écrit ID3v2.3."""
     if MUTAGEN_IMPORT_ERROR is not None or ID3 is None:
         return
     try:
+        # 1) Tentative d'effacement générique (ID3, APEv2, etc.) si mutagen sait le faire
+        try:
+            from mutagen import File as MutagenFile  # type: ignore
+            mf = MutagenFile(str(path))
+            if mf is not None:
+                try:
+                    mf.delete()
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+        # 2) Réécriture propre : ID3 minimal avec uniquement le titre
         try:
             tags = ID3(str(path))
         except ID3NoHeaderError:
@@ -298,25 +345,29 @@ def reset_metadata_keep_title(path: Path, title: str) -> None:
     except Exception:
         return
 
-
-# ----------------------------
-# ffmpeg
-# ----------------------------
-
 def _resource_base_dir() -> Path:
     """
     Répertoire de base pour les ressources.
-
-    - En mode source : dossier du fichier .py
-    - En mode PyInstaller : sys._MEIPASS (répertoire de ressources extrait / bundle)
+    Gère PyInstaller onedir où sys._MEIPASS peut pointer sur .../_internal.
     """
-    meipass = getattr(sys, "_MEIPASS", None)
-    if meipass:
-        try:
-            return Path(meipass).resolve()
-        except Exception:
-            return Path(meipass)
+    if getattr(sys, "frozen", False):
+        candidates: List[Path] = []
+
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            mp = Path(meipass)
+            candidates.append(mp)        # .../_internal
+            candidates.append(mp.parent) # .../
+
+        candidates.append(Path(sys.executable).resolve().parent)  # dossier de l'exe
+
+        for base in candidates:
+            if base.exists():
+                return base
+        return candidates[-1]
+
     return Path(__file__).resolve().parent
+
 
 
 def _macos_tools_subdir_names() -> List[str]:
@@ -391,6 +442,7 @@ def ffmpeg_convert_to_mp3(
     proc_holder: Dict[str, Optional[subprocess.Popen]],
     strip_metadata: bool = False,
 ) -> None:
+
     """Convertit src -> dst en MP3 CBR 44.1 kHz Joint Stereo via ffmpeg."""
     dst.parent.mkdir(parents=True, exist_ok=True)
 
@@ -402,8 +454,18 @@ def ffmpeg_convert_to_mp3(
         "error",
         "-i",
         str(src),
+<<<<<<< HEAD
         # Si demandé : ne pas copier metadata/chapters depuis la source
         * (["-map_metadata", "-1", "-map_chapters", "-1"] if strip_metadata else []),
+=======
+    ]
+
+    # Si demandé : ne pas copier metadata/chapters depuis la source
+    if strip_metadata:
+        cmd += ["-map_metadata", "-1", "-map_chapters", "-1"]
+
+    cmd += [
+>>>>>>> 217adb5880d4b66aaa2bb91ee047f8c566f6f5dd
         "-vn",
         "-ac",
         "2",
@@ -415,8 +477,13 @@ def ffmpeg_convert_to_mp3(
         bitrate,
         "-joint_stereo",
         "1",
-        str(dst),
     ]
+
+    # Si demandé : sortie ID3 plus “autoradio-friendly”
+    if strip_metadata:
+        cmd += ["-write_id3v1", "0", "-id3v2_version", "3"]
+
+    cmd += [str(dst)]
 
     if stop_event.is_set():
         raise RuntimeError("STOP_REQUESTED")
@@ -630,8 +697,8 @@ class GeneralTab(ttk.Frame):
                 self._img_ref = ImageTk.PhotoImage(img)
                 lbl_img = ttk.Label(root, image=self._img_ref)
                 lbl_img.pack(anchor="center", pady=(0, 10))
-            except Exception:
-                ttk.Label(root, text="[Image ar.png non chargée]").pack(anchor="center", pady=(0, 10))
+            except Exception as e:
+                ttk.Label(root, text=f"[Image ar.png non chargée] {type(e).__name__}: {e}").pack(anchor="center", pady=(0, 10))
         else:
             ttk.Label(root, text="[assets/ar.png manquant]").pack(anchor="center", pady=(0, 10))
 
@@ -822,11 +889,11 @@ class AutoPodcastApp(tk.Tk):
                 return {}
         return {}
 
-        data["audio_norm_mode"] = getattr(self, "audio_norm_mode", "Rapide (1 passe)")
     def _save_config(self) -> None:
         try:
             data = dict(getattr(self, "config_data", {}))
             data["theme"] = getattr(self, "current_theme_name", "")
+            data["audio_norm_mode"] = getattr(self, "audio_norm_mode", "Rapide (1 passe)")
             CONFIG_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         except Exception:
             return
@@ -1220,8 +1287,9 @@ class AutoPodcastApp(tk.Tk):
                 )
 
 
-                if self.tab_options.var_reset_meta.get():
+                if bool(self.tab_options.var_reset_meta.get()):
                     reset_metadata_keep_title(tmp_out, title)
+
 
                 # Copie vers clé
                 dest_file = dest_inbox / out_name

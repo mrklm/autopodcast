@@ -24,13 +24,14 @@ AutoPodcast prépare les fichiers **en amont**, de manière déterministe.
 ## 💾 Applications standalone (recommandé)
 
 - 🐧 **Linux**  
-  - à venir
+  -  [AutoPodcast-1.1.5-linux-x86_64.AppImage](https://github.com/mrklm/autopodcast/releases)
+  -  [AutoPodcast-1.1.5-linux-x86_64.tar.gz](https://github.com/mrklm/autopodcast/releases)
 
 - 🍎 **macOS**
-  - [autopodcat-v1.1.1-macOS-x86_64.dmg](https://github.com/mrklm/autopodcast/releases)
+  -  [AutoPodcast-vv1.1.2-macOS-x86_64.dmg](https://github.com/mrklm/autopodcast/releases)
 
 - 🪟 **Windows**  
-  - à venir
+  -  [AutoPodcast-windows-x86_64-v1.1.7.zip ](https://github.com/mrklm/autopodcast/releases)
 
 --- 
 

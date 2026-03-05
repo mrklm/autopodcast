@@ -16,6 +16,7 @@ tools/
 # fichiers de build
 
 releases/
+*.AppImage
 
 # Fichiers personnels / docs de travail
 *.odt
@@ -25,3 +26,11 @@ releases/
 # OS / éditeurs
 .DS_Store
 Thumbs.db
+
+# LibreOffice lock files
+.~lock.*
+.~*
+
+# LibreOffice temp / backup
+*.tmp
+*.bak

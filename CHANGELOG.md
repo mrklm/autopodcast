@@ -8,13 +8,53 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+<<<<<<< HEAD
+=======
+## [1.1.7] — 2026-02-12
+
+### Modifié
+
+ - Icône prise en compte pour le build windows
+
+## [1.1.6] — 2026-02-12
+
+### Modifié
+
+ - Adaptation du script autopodcast.py pour windows (chemins d'outils et image)
+
+---
+
+## [1.1.5] — 2026-02-12
+
+### Modifié
+
+ - Problème d'affichage de l'image du programme sous linux
+
+---
+
+## [1.1.4] — 2026-02-12
+
+### Modifié
+
+ - Problème d'affichage de l'image du programme sous linux
+
+---
+
+>>>>>>> 217adb5880d4b66aaa2bb91ee047f8c566f6f5dd
 ## [1.1.3] — 2026-02-12
 
 ### Modifié
 
+<<<<<<< HEAD
  - La fonction "ffmpeg_convert_to_mp3()" ne s'executait pas pas car le parametre "strip_metadata" 
    etait manquant. 
 
+=======
+ - Nettoyage d'incohérences dans le script en rapport avec les commandes pour éffacer 
+   les métadonnées
+
+---
+>>>>>>> 217adb5880d4b66aaa2bb91ee047f8c566f6f5dd
 
 ## [1.1.2] — 2026-02-12
 
