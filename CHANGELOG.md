@@ -8,6 +8,13 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.1.3] — 2026-02-12
+
+### Modifié
+
+ - La fonction "ffmpeg_convert_to_mp3()" ne s'executait pas pas car le parametre "strip_metadata" 
+   etait manquant. 
+
 
 ## [1.1.2] — 2026-02-12
 

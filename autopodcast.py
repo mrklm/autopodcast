@@ -389,6 +389,7 @@ def ffmpeg_convert_to_mp3(
     bitrate: str,
     stop_event: threading.Event,
     proc_holder: Dict[str, Optional[subprocess.Popen]],
+    strip_metadata: bool = False,
 ) -> None:
     """Convertit src -> dst en MP3 CBR 44.1 kHz Joint Stereo via ffmpeg."""
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -401,6 +402,8 @@ def ffmpeg_convert_to_mp3(
         "error",
         "-i",
         str(src),
+        # Si demandé : ne pas copier metadata/chapters depuis la source
+        * (["-map_metadata", "-1", "-map_chapters", "-1"] if strip_metadata else []),
         "-vn",
         "-ac",
         "2",
