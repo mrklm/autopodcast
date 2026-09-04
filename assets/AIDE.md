@@ -29,7 +29,7 @@ Le programme :
 
 - renomme les fichiers de manière ordonnée,
 - applique des métadonnées propres,
-- exporte un dossier prêt à être copié sur une clé USB.
+- exporte les fichiers préparés directement dans `PODCASTS/` sur la clé USB.
 
 Il suffit ensuite de brancher la clé dans l’autoradio.
 

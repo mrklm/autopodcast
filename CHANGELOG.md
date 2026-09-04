@@ -8,6 +8,15 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.1.9] — 2026-09-04
+
+### Modifié
+
+- Suppression du sous-dossier `INBOX` : les fichiers préparés sont maintenant copiés
+  directement dans `PODCASTS/` pour simplifier l'arborescence USB.
+
+---
+
 ## [1.1.8] — 2026-09-04
 
 ### Corrigé

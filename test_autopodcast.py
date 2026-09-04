@@ -21,6 +21,9 @@ class AutoPodcastRegressionTests(unittest.TestCase):
         with mock.patch("shutil.which", return_value=None):
             self.assertIsNotNone(autopodcast.find_ffmpeg())
 
+    def test_destination_has_no_inbox_subdirectory(self):
+        self.assertFalse(hasattr(autopodcast, "DEST_SUBDIR"))
+
 
 if __name__ == "__main__":
     unittest.main()

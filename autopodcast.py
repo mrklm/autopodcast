@@ -90,11 +90,10 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.1.8"
+APP_VERSION = "1.1.9"
 
 
 DEST_ROOT_DIRNAME = "PODCASTS"
-DEST_SUBDIR = "INBOX"
 
 
 # ----------------------------
@@ -1243,16 +1242,15 @@ class AutoPodcastApp(tk.Tk):
             temp_root.mkdir(parents=True, exist_ok=True)
 
             dest_root = Path(cfg.volume) / DEST_ROOT_DIRNAME
-            dest_inbox = dest_root / DEST_SUBDIR
 
             # Nettoyage destination /PODCASTS
             if self.tab_options.var_clean_dest.get():
                 self.msg_queue.put(("status", "Nettoyage du dossier PODCASTS sur la clé USB…"))
                 if dest_root.exists():
                     shutil.rmtree(dest_root)
-                dest_inbox.mkdir(parents=True, exist_ok=True)
+                dest_root.mkdir(parents=True, exist_ok=True)
             else:
-                dest_inbox.mkdir(parents=True, exist_ok=True)
+                dest_root.mkdir(parents=True, exist_ok=True)
 
             # Profil bitrate
             profile_key = self.tab_options.var_profile.get()
@@ -1296,7 +1294,7 @@ class AutoPodcastApp(tk.Tk):
 
 
                 # Copie vers clé
-                dest_file = dest_inbox / out_name
+                dest_file = dest_root / out_name
                 shutil.copy2(tmp_out, dest_file)
 
                 self.msg_queue.put(("log", f"✅ {out_name}"))
