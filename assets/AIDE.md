@@ -22,7 +22,7 @@ Le but n’est pas d’être intelligent, mais d’être prévisible.
 ## Comment utiliser ce programme ?
 
 1. Sélectionner un dossier contenant des fichiers audio (podcasts, émissions, conférences…).
-2. Choisir un profil MP3 (bitrate, mono/stéréo, normalisation si activée).
+2. Choisir un profil MP3 et activer l'amélioration du volume si besoin.
 3. Lancer le traitement.
 
 Le programme :
@@ -49,9 +49,10 @@ Il suffit ensuite de brancher la clé dans l’autoradio.
 1. Lecture du dossier source.
 2. Analyse des fichiers audio.
 3. Génération d’un ordre explicite (numérotation).
-4. Conversion / normalisation via ffmpeg selon le profil choisi.
-5. Écriture des tags ID3 (titre, piste, album, etc.).
-6. Export dans un dossier de sortie déterministe.
+4. Conversion via ffmpeg selon le profil choisi.
+5. Amélioration dynamique du volume si l'option voiture est activée.
+6. Écriture des tags ID3 (titre, piste, album, etc.).
+7. Export dans un dossier de sortie déterministe.
 
 ### Pourquoi ça marche avec des autoradios “simples”
 

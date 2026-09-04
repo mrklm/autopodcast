@@ -8,6 +8,17 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.1.11] — 2026-09-04
+
+### Modifié
+
+- Remplacement des modes de normalisation par une seule option
+  `Améliorer le volume pour écoute voiture`.
+- Application effective du filtre ffmpeg `dynaudnorm=f=150:g=15` lorsque cette option
+  est activée.
+
+---
+
 ## [1.1.10] — 2026-09-04
 
 ### Modifié

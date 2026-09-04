@@ -91,7 +91,7 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.1.10"
+APP_VERSION = "1.1.11"
 
 
 DEST_ROOT_DIRNAME = "PODCASTS"
@@ -455,6 +455,7 @@ def ffmpeg_convert_to_mp3(
     stop_event: threading.Event,
     proc_holder: Dict[str, Optional[subprocess.Popen]],
     strip_metadata: bool = False,
+    normalize_audio: bool = False,
 ) -> None:
 
     """Convertit src -> dst en MP3 CBR 44.1 kHz Joint Stereo via ffmpeg."""
@@ -480,6 +481,12 @@ def ffmpeg_convert_to_mp3(
         "2",
         "-ar",
         "44100",
+    ]
+
+    if normalize_audio:
+        cmd += ["-af", "dynaudnorm=f=150:g=15"]
+
+    cmd += [
         "-codec:a",
         "libmp3lame",
         "-b:a",
@@ -807,9 +814,6 @@ class AutoPodcastApp(tk.Tk):
         # Thème de démarrage tiré au sort
         self.config_data = self._load_config()
         self.current_theme_name = pick_startup_theme()
-        # Traitement du son (persistant)
-        self.audio_norm_mode = self.config_data.get("audio_norm_mode", "Rapide (1 passe)")
-        self.config_data["audio_norm_mode"] = self.audio_norm_mode
 
         # UI
         self._build_ui()
@@ -901,7 +905,6 @@ class AutoPodcastApp(tk.Tk):
         try:
             data = dict(getattr(self, "config_data", {}))
             data["theme"] = getattr(self, "current_theme_name", "")
-            data["audio_norm_mode"] = getattr(self, "audio_norm_mode", "Rapide (1 passe)")
             CONFIG_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         except Exception:
             return
@@ -1291,6 +1294,7 @@ class AutoPodcastApp(tk.Tk):
                     stop_event=self.stop_event,
                     proc_holder=self.current_proc_holder,
                     strip_metadata=bool(self.tab_options.var_reset_meta.get()),
+                    normalize_audio=bool(self.tab_options.var_audio_norm_enabled.get()),
                 )
 
 
