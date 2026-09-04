@@ -90,7 +90,7 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.1.7"
+APP_VERSION = "1.1.8"
 
 
 DEST_ROOT_DIRNAME = "PODCASTS"
@@ -430,7 +430,16 @@ def find_ffmpeg() -> Optional[Path]:
             continue
 
     which = shutil.which("ffmpeg")
-    return Path(which) if which else None
+    if which:
+        return Path(which)
+
+    # Une app macOS lancée depuis Finder n'hérite pas toujours du PATH du shell.
+    for path in ("/usr/local/bin/ffmpeg", "/opt/homebrew/bin/ffmpeg"):
+        candidate = Path(path)
+        if candidate.exists() and candidate.is_file():
+            return candidate
+
+    return None
 
 
 def ffmpeg_convert_to_mp3(

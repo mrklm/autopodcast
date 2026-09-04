@@ -8,8 +8,17 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
-<<<<<<< HEAD
-=======
+## [1.1.8] — 2026-09-04
+
+### Corrigé
+
+- Reconstruction prévue depuis le code corrigé pour éviter l'erreur
+  `ffmpeg_convert_to_mp3() got an unexpected keyword argument 'strip_metadata'`
+  présente dans d'anciens paquets macOS.
+- Nettoyage des marqueurs de conflit restés dans le changelog.
+
+---
+
 ## [1.1.7] — 2026-02-12
 
 ### Modifié
@@ -40,21 +49,15 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
->>>>>>> 217adb5880d4b66aaa2bb91ee047f8c566f6f5dd
 ## [1.1.3] — 2026-02-12
 
-### Modifié
+### Corrigé
 
-<<<<<<< HEAD
- - La fonction "ffmpeg_convert_to_mp3()" ne s'executait pas pas car le parametre "strip_metadata" 
-   etait manquant. 
-
-=======
- - Nettoyage d'incohérences dans le script en rapport avec les commandes pour éffacer 
-   les métadonnées
+- Ajout du paramètre `strip_metadata` à `ffmpeg_convert_to_mp3()`.
+- Nettoyage d'incohérences dans le script en rapport avec les commandes pour effacer
+  les métadonnées.
 
 ---
->>>>>>> 217adb5880d4b66aaa2bb91ee047f8c566f6f5dd
 
 ## [1.1.2] — 2026-02-12
 
@@ -134,4 +137,3 @@ et le versionnement suit le principe du *Semantic Versioning*.
 - Utilisation de Pillow pour le redimensionnement d’image
 - Gestion des chemins via `pathlib`
 - Dépendances listées dans `requirements.txt`
-

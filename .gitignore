@@ -14,7 +14,10 @@ config.json
 tools/
 
 # fichiers de build
-
+build/
+dist/
+dmg/
+*.spec
 releases/
 *.AppImage
 

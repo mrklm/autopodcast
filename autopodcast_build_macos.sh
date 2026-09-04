@@ -84,13 +84,19 @@ if [[ -f "tools/macos-arm64/ffmpeg" ]]; then
   chmod +x tools/macos-arm64/ffmpeg tools/macos-arm64/ffprobe 2>/dev/null || true
 fi
 
+PYINSTALLER_DATA_ARGS=(--add-data "assets:assets")
+if [[ -d "tools" ]]; then
+  PYINSTALLER_DATA_ARGS+=(--add-data "tools:tools")
+else
+  echo "Info: dossier tools/ absent, ffmpeg devra être disponible dans le PATH."
+fi
+
 # ---- build .app -------------------------------------
 pyinstaller \
   --windowed \
   --name "$APP_NAME" \
   --icon "$ICON_PATH" \
-  --add-data "assets:assets" \
-  --add-data "tools:tools" \
+  "${PYINSTALLER_DATA_ARGS[@]}" \
   "$ENTRYPOINT"
 
 APP_BUNDLE="dist/${APP_NAME}.app"
