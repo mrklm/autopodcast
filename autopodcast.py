@@ -36,6 +36,7 @@ import subprocess
 import platform
 import json
 import unicodedata
+import random
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Tuple, Dict
@@ -90,10 +91,15 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.1.9"
+APP_VERSION = "1.1.10"
 
 
 DEST_ROOT_DIRNAME = "PODCASTS"
+
+
+def pick_startup_theme() -> str:
+    """Choisit un thème au hasard à chaque démarrage."""
+    return random.choice(list(THEMES.keys())) if THEMES else ""
 
 
 # ----------------------------
@@ -798,10 +804,9 @@ class AutoPodcastApp(tk.Tk):
         self.ffmpeg_path = find_ffmpeg()
 
 
-        # Thème persistant
+        # Thème de démarrage tiré au sort
         self.config_data = self._load_config()
-        default_theme = list(THEMES.keys())[0] if THEMES else ""
-        self.current_theme_name = self.config_data.get("theme", default_theme) if default_theme else ""
+        self.current_theme_name = pick_startup_theme()
         # Traitement du son (persistant)
         self.audio_norm_mode = self.config_data.get("audio_norm_mode", "Rapide (1 passe)")
         self.config_data["audio_norm_mode"] = self.audio_norm_mode
@@ -809,7 +814,7 @@ class AutoPodcastApp(tk.Tk):
         # UI
         self._build_ui()
         
-        # Appliquer le thème persistant après création de l'UI
+        # Appliquer le thème tiré au sort après création de l'UI
         if self.current_theme_name:
             self.apply_theme(self.current_theme_name, save=False)
             try:

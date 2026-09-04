@@ -8,6 +8,14 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.1.10] — 2026-09-04
+
+### Modifié
+
+- Le thème est maintenant tiré au sort à chaque démarrage de l'application.
+
+---
+
 ## [1.1.9] — 2026-09-04
 
 ### Modifié

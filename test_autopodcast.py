@@ -24,6 +24,9 @@ class AutoPodcastRegressionTests(unittest.TestCase):
     def test_destination_has_no_inbox_subdirectory(self):
         self.assertFalse(hasattr(autopodcast, "DEST_SUBDIR"))
 
+    def test_pick_startup_theme_returns_existing_theme(self):
+        self.assertIn(autopodcast.pick_startup_theme(), autopodcast.THEMES)
+
 
 if __name__ == "__main__":
     unittest.main()
