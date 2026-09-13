@@ -17,6 +17,11 @@ et le versionnement suit le principe du *Semantic Versioning*.
 - Application effective du filtre ffmpeg `dynaudnorm=f=150:g=15` lorsque cette option
   est activée.
 
+### Technique
+
+- Ajout d'un script de build dédié macOS High Sierra Intel :
+  `autopodcast_build_high_sierra.sh`.
+
 ---
 
 ## [1.1.10] — 2026-09-04
