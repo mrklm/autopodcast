@@ -187,8 +187,13 @@ jobs:
             exit 1
           fi
           if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
-            git fetch origin "refs/tags/$tag:refs/tags/$tag"
-            test "$(git rev-parse "$tag^{commit}")" = "$(git rev-parse HEAD)"
+            # Checkout may already have a local tag pointing directly to the commit.
+            # Fetch the remote annotated/lightweight tag without replacing that ref.
+            git fetch --no-tags origin "refs/tags/$tag"
+            if [ "$(git rev-parse 'FETCH_HEAD^{commit}')" != "$(git rev-parse HEAD)" ]; then
+              echo "Le tag distant $tag ne correspond pas au commit construit."
+              exit 1
+            fi
           fi
           gh release create "$tag" releases/* \
             --target "$GITHUB_SHA" \
