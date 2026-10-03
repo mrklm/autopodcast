@@ -6,8 +6,8 @@ set -euo pipefail
 # Sortie: ./releases/
 #
 # Usage:
-#   ./autopodcast_build_macos.sh 1.1.11
-#   ./autopodcast_build_macos.sh 1.1.11 macOS-x86_64
+#   ./autopodcast_build_macos.sh 1.1.12
+#   ./autopodcast_build_macos.sh 1.1.12 macOS-x86_64
 # ----------------------------------------------------
 
 APP_NAME="AutoPodcast"

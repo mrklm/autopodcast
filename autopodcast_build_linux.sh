@@ -10,7 +10,7 @@ set -euo pipefail
 #
 # Usage :
 #   ./autopodcast_build_linux.sh              # utilise la version dans autopodcast.py
-#   ./autopodcast_build_linux.sh 1.1.11       # force la version
+#   ./autopodcast_build_linux.sh 1.1.12       # force la version
 # ------------------------------------------------------------
 
 APP_NAME="AutoPodcast"

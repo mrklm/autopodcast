@@ -33,6 +33,35 @@ Le programme :
 
 Il suffit ensuite de brancher la clé dans l’autoradio.
 
+### Vérifier et formater la clé USB
+
+Sélectionnez la racine de la clé puis cliquez sur **Analyser la clé USB**.
+Si son format n'est pas FAT, AutoPodcast propose un formatage en FAT32.
+Le bouton **Formater la clé en FAT32…** permet aussi de le demander directement.
+La compatibilité finale dépend de l'autoradio ; consultez sa notice.
+
+**Le formatage efface tous les fichiers du volume sélectionné.** Sauvegardez-les
+ailleurs avant de saisir **FORMATER** dans la confirmation. Le nom, le périphérique
+et la capacité sont affichés pour vérifier la cible. Ne débranchez pas la clé
+pendant l'opération. Une fois terminé, actualisez la liste, sélectionnez la clé
+**PODCASTS** puis analysez-la avant de préparer les fichiers.
+
+Le formatage intégré accepte les partitions USB physiques d'au moins 512 Mio,
+sur une clé à une seule partition de données (une partition EFI est tolérée sous
+macOS). Il ne repartitionne pas le disque et refuse les disques internes, les
+dossiers ordinaires, ainsi que les volumes contenant l'application ou le profil
+utilisateur. Une clé dont l'identité ne peut pas être vérifiée est refusée.
+
+- **Linux** : nécessite UDisks2, dosfstools et gdbus (outils GLib). Une demande
+  d'autorisation système peut apparaître.
+- **Windows** : lancer AutoPodcast en tant qu'administrateur ; le formatage
+  FAT32 intégré est limité aux volumes de 32 Gio maximum.
+- **macOS** : utilise diskutil sur une partition USB externe. Les volumes
+  virtuels APFS et les clés à plusieurs partitions de données sont refusés.
+
+Après une erreur, vérifiez l'état de la clé avant de recommencer : le formatage
+peut avoir commencé. AutoPodcast ne relance pas automatiquement le traitement audio.
+
 ---
 
 ## Comment fonctionne ce programme ? (niveau technique)

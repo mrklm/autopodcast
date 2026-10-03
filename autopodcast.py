@@ -42,10 +42,11 @@ from pathlib import Path
 from typing import List, Optional, Tuple, Dict
 
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, simpledialog
 
 from tab_options import OptionsTab, MP3_PROFILES, THEMES
 from tab_help import HelpTab
+from usb_format import FormatError, inspect_target, format_fat32
 
 from PIL import Image, ImageTk
 
@@ -91,7 +92,7 @@ else:
     MUTAGEN_IMPORT_ERROR = None
 
 APP_TITLE = "Auto-Podcast"
-APP_VERSION = "1.1.11"
+APP_VERSION = "1.1.12"
 
 
 DEST_ROOT_DIRNAME = "PODCASTS"
@@ -242,10 +243,12 @@ def get_fs_type(volume_path: str) -> str:
                     return "EXFAT"
                 if "NTFS" in val:
                     return "NTFS"
-                if "FAT_32" in val or "FAT32" in val or "MS-DOS" in val:
-                    return "FAT32"
                 if "FAT_16" in val or "FAT16" in val:
                     return "FAT16"
+                if "FAT_32" in val or "FAT32" in val:
+                    return "FAT32"
+                if "MS-DOS" in val:
+                    return "FAT"
                 return val
 
         if _is_linux():
@@ -605,10 +608,8 @@ def analyze_usb(volume_path: str) -> UsbAnalysis:
     file_count, mp3_count, other_count, max_depth, max_files_in_dir, long_name_count, non_ascii, total_mp3_bytes = scan_files_for_analysis(root)
 
     problems: List[str] = []
-    if fs in ("EXFAT", "NTFS", "UNKNOWN"):
+    if fs not in ("FAT", "FAT32", "FAT16", "VFAT"):
         problems.append(f"Système de fichiers détecté : {fs}. FAT32 (ou FAT16) est recommandé.")
-    if fs == "VFAT":
-        problems.append("Système de fichiers détecté : VFAT (FAT). FAT32 est recommandé si possible.")
     if max_depth > 2:
         problems.append(f"Arborescence profonde (profondeur max {max_depth}). Une arborescence simple est recommandée.")
     if max_files_in_dir > 200:
@@ -733,6 +734,8 @@ class GeneralTab(ttk.Frame):
         # Bouton analyser centré (en dessous du cadre)
         self.btn_analyze = ttk.Button(root, text="Analyser la clé USB", command=self.app.on_analyze)
         self.btn_analyze.pack(anchor="center", pady=(6, 10))
+        self.btn_format = ttk.Button(root, text="Formater la clé en FAT32…", command=self.app.on_format)
+        self.btn_format.pack(anchor="center", pady=(0, 10))
 
         # Section source
         src_frame = ttk.LabelFrame(root, text="Source", padding=10)
@@ -767,6 +770,9 @@ class GeneralTab(ttk.Frame):
 
         # Centrage via pack + expand
         self.btn_prepare.pack(side="left", expand=True)
+        self.preparation_activity = ttk.Progressbar(
+            act_frame, orient="horizontal", mode="indeterminate", length=180)
+        self.preparation_activity.pack(side="left", fill="x", expand=True, padx=16)
         self.btn_stop.pack(side="left", expand=True)
 
         # Journal
@@ -805,6 +811,8 @@ class AutoPodcastApp(tk.Tk):
 
         self.stop_event = threading.Event()
         self.worker_thread: Optional[threading.Thread] = None
+        self.formatting = False
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
         self.msg_queue: "queue.Queue[Tuple[str, object]]" = queue.Queue()
         self.current_proc_holder: Dict[str, Optional[subprocess.Popen]] = {"proc": None}
 
@@ -1053,11 +1061,15 @@ class AutoPodcastApp(tk.Tk):
                     self._set_progress(int(v), int(m))
                 elif kind == "done":
                     self._on_worker_done(success=bool(payload))
+                elif kind == "format_done":
+                    self._on_format_done(*payload)
         except queue.Empty:
             pass
         self.after(100, self._poll_queue)
 
     def _on_worker_done(self, success: bool) -> None:
+        self.tab_general.preparation_activity.stop()
+        self.tab_general.preparation_activity.configure(value=0)
         self.tab_general.btn_prepare.configure(state="normal")
         self.tab_general.btn_stop.configure(state="disabled")
         self.stop_event.clear()
@@ -1083,7 +1095,72 @@ class AutoPodcastApp(tk.Tk):
 
     # ---------------- Actions : Analyse / Préparer / Stop ----------------
 
+    def _on_close(self) -> None:
+        if self.formatting:
+            messagebox.showwarning("Formatage en cours", "Attendez la fin du formatage avant de fermer l'application.")
+            return
+        self.destroy()
+
+    def _operation_busy(self) -> bool:
+        return self.formatting or bool(self.worker_thread and self.worker_thread.is_alive())
+
+    def on_format(self) -> None:
+        if self._operation_busy():
+            messagebox.showwarning("Formatage", "Attendez la fin de l'opération en cours.")
+            return
+        volume = self.tab_general.var_volume.get().strip()
+        if not volume:
+            messagebox.showwarning("Formatage", "Sélectionnez une clé USB.")
+            return
+        try:
+            target = inspect_target(volume)
+        except (FormatError, ValueError, OSError) as exc:
+            messagebox.showerror("Formatage indisponible", str(exc))
+            return
+        answer = simpledialog.askstring(
+            "Confirmer l'effacement de la clé USB",
+            f"Clé : {target.label}\nVolume : {target.volume}\n"
+            f"Périphérique : {target.device}\nCapacité : {human_bytes(target.size)}\n\n"
+            "TOUS les fichiers de ce volume seront effacés.\n"
+            "Sauvegardez-les avant de continuer. Le nouveau format sera FAT32.\n"
+            "Ne débranchez pas la clé pendant l'opération.\n\n"
+            "Saisissez FORMATER pour confirmer :", parent=self)
+        if answer != "FORMATER":
+            return
+        self.formatting = True
+        for button in (self.tab_general.btn_format, self.tab_general.btn_analyze,
+                       self.tab_general.btn_prepare, self.tab_general.btn_stop):
+            button.configure(state="disabled")
+        self._set_status("Formatage FAT32 en cours… Ne débranchez pas la clé.")
+        self._log(f"Formatage confirmé : {target.volume} ({target.device}, {human_bytes(target.size)}).")
+        self.worker_thread = threading.Thread(target=self._worker_format, args=(target,), daemon=True)
+        self.worker_thread.start()
+
+    def _worker_format(self, target) -> None:
+        try:
+            message = format_fat32(target)
+            self.msg_queue.put(("format_done", (True, message)))
+        except Exception as exc:
+            self.msg_queue.put(("format_done", (False, str(exc))))
+
+    def _on_format_done(self, success: bool, message: str) -> None:
+        self.formatting = False
+        for button in (self.tab_general.btn_format, self.tab_general.btn_analyze, self.tab_general.btn_prepare):
+            button.configure(state="normal")
+        self.tab_general.var_volume.set("")
+        self.refresh_volumes()
+        # Require a deliberate selection: the mount point/drive letter may have changed.
+        self.tab_general.var_volume.set("")
+        self._set_status("Formatage terminé." if success else "Formatage non terminé : consultez le journal.")
+        self._log(message)
+        if success:
+            messagebox.showinfo("Formatage", message)
+        else:
+            messagebox.showerror("Formatage", message + "\n\nActualisez et vérifiez l'état de la clé avant de réessayer.")
+
     def on_analyze(self) -> None:
+        if self._operation_busy():
+            return
         vol = self.tab_general.var_volume.get().strip()
         if not vol:
             messagebox.showwarning("Analyse", "Veuillez sélectionner une clé USB.")
@@ -1102,11 +1179,20 @@ class AutoPodcastApp(tk.Tk):
             a = analyze_usb(vol)
             self._log(build_analysis_report(a))
             self._set_status("Analyse terminée.")
+            if a.fs_type not in ("FAT", "FAT16", "FAT32", "VFAT", "UNKNOWN"):
+                if messagebox.askyesno(
+                        "Format de la clé USB",
+                        f"Format détecté : {a.fs_type}. Certains autoradios ne le lisent pas.\n\n"
+                        "Voulez-vous formater cette clé en FAT32 ?\n"
+                        "Tous ses fichiers seront effacés après une seconde confirmation.", default="no"):
+                    self.on_format()
         except Exception as e:
             self._log(f"❌ Erreur d'analyse : {e}")
             self._set_status("Erreur d'analyse.")
 
     def on_prepare(self) -> None:
+        if self._operation_busy():
+            return
         if MUTAGEN_IMPORT_ERROR is not None:
             messagebox.showerror("Préparation", "mutagen est requis.\nInstallez : pip install mutagen")
             return
@@ -1125,13 +1211,17 @@ class AutoPodcastApp(tk.Tk):
             messagebox.showerror("Préparation", f"Impossible d'analyser la clé : {e}")
             return
 
-        warn_lines: List[str] = []
         fs_upper = a.fs_type.upper()
-        if fs_upper in ("EXFAT", "NTFS", "UNKNOWN"):
-            warn_lines.append("Le système de fichiers n'est pas FAT32/FAT16. Certains autoradios peuvent ignorer des fichiers.")
-        if warn_lines:
-            msg = "Avertissement :\n\n" + "\n".join(f"• {x}" for x in warn_lines) + "\n\nSouhaitez-vous continuer ?"
-            if not messagebox.askyesno("Préparation", msg):
+        if fs_upper not in ("FAT", "FAT16", "FAT32", "VFAT"):
+            msg = (f"Format détecté : {fs_upper}. La compatibilité avec l'autoradio n'est pas garantie.\n\n"
+                   "Voulez-vous formater la clé en FAT32 avant de préparer les fichiers ?\n"
+                   "Oui : proposer l'effacement avec confirmation.\n"
+                   "Non : continuer sans formater.\nAnnuler : revenir à l'application.")
+            choice = messagebox.askyesnocancel("Préparation", msg, default="cancel")
+            if choice is None:
+                return
+            if choice:
+                self.on_format()
                 return
 
         # Confirmation nettoyage /PODCASTS
@@ -1154,7 +1244,12 @@ class AutoPodcastApp(tk.Tk):
         self._log("=== Préparation : démarrage ===")
 
         self.worker_thread = threading.Thread(target=self._worker_prepare, args=(cfg,), daemon=True)
-        self.worker_thread.start()
+        self.tab_general.preparation_activity.start(40)
+        try:
+            self.worker_thread.start()
+        except RuntimeError as exc:
+            self._log(f"❌ Impossible de démarrer la préparation : {exc}")
+            self._on_worker_done(success=False)
 
     def on_stop(self) -> None:
         if self.worker_thread and self.worker_thread.is_alive():

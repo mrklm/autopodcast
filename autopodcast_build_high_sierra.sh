@@ -6,7 +6,7 @@ set -euo pipefail
 # Sortie: ./releases/
 #
 # Usage:
-#   ./autopodcast_build_high_sierra.sh 1.1.11
+#   ./autopodcast_build_high_sierra.sh 1.1.12
 #
 # Cible:
 #   - macOS 10.13.6 High Sierra

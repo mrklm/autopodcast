@@ -24,14 +24,14 @@ AutoPodcast prépare les fichiers **en amont**, de manière déterministe.
 ## 💾 Applications standalone (recommandé)
 
 - 🐧 **Linux**  
-  -  [AutoPodcast-linux-x86_64-v1.1.11.AppImage](https://github.com/mrklm/autopodcast/releases)
-  -  [AutoPodcast-1.1.11-linux-x86_64.tar.gz](https://github.com/mrklm/autopodcast/releases)
+  -  [AutoPodcast-linux-x86_64-v1.1.12.AppImage](https://github.com/mrklm/autopodcast/releases)
+  -  [AutoPodcast-1.1.12-linux-x86_64.tar.gz](https://github.com/mrklm/autopodcast/releases)
 
 - 🍎 **macOS**
-  -  [AutoPodcast-v1.1.11-macOS-x86_64.dmg](https://github.com/mrklm/autopodcast/releases)
+  -  [AutoPodcast-v1.1.12-macOS-x86_64.dmg](https://github.com/mrklm/autopodcast/releases)
 
 - 🪟 **Windows**  
-  -  [AutoPodcast-windows-x86_64-v1.1.11.zip](https://github.com/mrklm/autopodcast/releases)
+  -  [AutoPodcast-windows-x86_64-v1.1.12.zip](https://github.com/mrklm/autopodcast/releases)
 
 --- 
 
@@ -42,10 +42,10 @@ tar.gz), Windows x86_64 (ZIP) et macOS Intel (DMG). Il embarque FFmpeg depuis le
 wheels de [imageio-ffmpeg](https://github.com/imageio/imageio-ffmpeg), exécute les
 tests et vérifie les SHA256 avant de publier une release commune.
 
-Pour construire la **1.1.11**, une fois le workflow poussé sur `main` : ouvrir
+Pour construire la **1.1.12**, une fois le workflow poussé sur `main` : ouvrir
 **Actions → Build and release AutoPodcast → Run workflow**, sélectionner `main`
-et conserver la version `1.1.11`. Les trois builds doivent réussir avant la
-publication de la release `v1.1.11`. Les artefacts des builds réussis restent
+et conserver la version `1.1.12`. Les trois builds doivent réussir avant la
+publication de la release `v1.1.12`. Les artefacts des builds réussis restent
 également disponibles dans Actions pendant 14 jours.
 
 Pour les versions suivantes, mettre à jour `APP_VERSION` et le changelog, puis

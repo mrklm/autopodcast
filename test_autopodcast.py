@@ -6,9 +6,50 @@ from tempfile import TemporaryDirectory
 from unittest import mock
 
 import autopodcast
+from usb_format import FormatTarget, FormatError
 
 
 class AutoPodcastRegressionTests(unittest.TestCase):
+    def test_format_cancellation_never_starts_worker(self):
+        app = mock.Mock()
+        app._operation_busy.return_value = False
+        app.tab_general.var_volume.get.return_value = '/media/test/CLE'
+        target = FormatTarget('/media/test/CLE', '/dev/sdb1', 'id', 8 * 1024**3, 'CLE', 'linux')
+        for answer in (None, '', 'formater', 'NON'):
+            with self.subTest(answer=answer), \
+                    mock.patch('autopodcast.inspect_target', return_value=target), \
+                    mock.patch('autopodcast.simpledialog.askstring', return_value=answer), \
+                    mock.patch('autopodcast.threading.Thread') as thread:
+                autopodcast.AutoPodcastApp.on_format(app)
+                thread.assert_not_called()
+
+    def test_format_refused_while_preparation_is_running(self):
+        app = mock.Mock()
+        app._operation_busy.return_value = True
+        with mock.patch('autopodcast.messagebox.showwarning'), \
+                mock.patch('autopodcast.inspect_target') as inspect:
+            autopodcast.AutoPodcastApp.on_format(app)
+            inspect.assert_not_called()
+
+    def test_unsafe_target_never_reaches_confirmation(self):
+        app = mock.Mock()
+        app._operation_busy.return_value = False
+        app.tab_general.var_volume.get.return_value = '/'
+        with mock.patch('autopodcast.inspect_target', side_effect=FormatError('system')), \
+                mock.patch('autopodcast.messagebox.showerror'), \
+                mock.patch('autopodcast.simpledialog.askstring') as confirm, \
+                mock.patch('autopodcast.threading.Thread') as thread:
+            autopodcast.AutoPodcastApp.on_format(app)
+            confirm.assert_not_called()
+            thread.assert_not_called()
+
+    def test_filesystem_analysis_handles_non_fat_and_vfat(self):
+        with TemporaryDirectory() as tmp:
+            for fs, ok in [('VFAT', True), ('FAT16', True), ('FAT32', True),
+                           ('EXT4', False), ('APFS', False), ('EXFAT', False), ('UNKNOWN', False)]:
+                with self.subTest(fs=fs), mock.patch('autopodcast.get_fs_type', return_value=fs):
+                    self.assertEqual(autopodcast.analyze_usb(tmp).verdict_ok, ok)
+
     def test_ffmpeg_convert_to_mp3_accepts_strip_metadata(self):
         signature = inspect.signature(autopodcast.ffmpeg_convert_to_mp3)
 

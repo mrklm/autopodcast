@@ -8,6 +8,21 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ---
 
+## [1.1.12] — 2026-10-03
+
+### Ajouté
+
+- Barre animée entre « Préparer la clé USB » et « Stop » pendant la préparation.
+- Proposition et bouton de formatage FAT32 des clés USB, avec confirmation
+  d'effacement et contrôle du périphérique sous Linux, Windows et macOS.
+
+### Corrigé
+
+- Détection des formats non FAT étendue ; VFAT n'est plus signalé comme problématique.
+- Distinction FAT16/FAT32 corrigée sous macOS.
+
+---
+
 ## [1.1.11] — 2026-09-04
 
 ### Modifié
