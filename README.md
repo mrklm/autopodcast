@@ -24,16 +24,40 @@ AutoPodcast prépare les fichiers **en amont**, de manière déterministe.
 ## 💾 Applications standalone (recommandé)
 
 - 🐧 **Linux**  
-  -  [AutoPodcast-1.1.5-linux-x86_64.AppImage](https://github.com/mrklm/autopodcast/releases)
-  -  [AutoPodcast-1.1.5-linux-x86_64.tar.gz](https://github.com/mrklm/autopodcast/releases)
+  -  [AutoPodcast-linux-x86_64-v1.1.11.AppImage](https://github.com/mrklm/autopodcast/releases)
+  -  [AutoPodcast-1.1.11-linux-x86_64.tar.gz](https://github.com/mrklm/autopodcast/releases)
 
 - 🍎 **macOS**
-  -  [AutoPodcast-vv1.1.2-macOS-x86_64.dmg](https://github.com/mrklm/autopodcast/releases)
+  -  [AutoPodcast-v1.1.11-macOS-x86_64.dmg](https://github.com/mrklm/autopodcast/releases)
 
 - 🪟 **Windows**  
-  -  [AutoPodcast-windows-x86_64-v1.1.7.zip ](https://github.com/mrklm/autopodcast/releases)
+  -  [AutoPodcast-windows-x86_64-v1.1.11.zip](https://github.com/mrklm/autopodcast/releases)
 
 --- 
+
+## Builds et releases automatiques
+
+Le workflow `.github/workflows/release.yml` construit Linux x86_64 (AppImage et
+tar.gz), Windows x86_64 (ZIP) et macOS Intel (DMG). Il embarque FFmpeg depuis les
+wheels de [imageio-ffmpeg](https://github.com/imageio/imageio-ffmpeg), exécute les
+tests et vérifie les SHA256 avant de publier une release commune.
+
+Pour construire la **1.1.11**, une fois le workflow poussé sur `main` : ouvrir
+**Actions → Build and release AutoPodcast → Run workflow**, sélectionner `main`
+et conserver la version `1.1.11`. Les trois builds doivent réussir avant la
+publication de la release `v1.1.11`. Les artefacts des builds réussis restent
+également disponibles dans Actions pendant 14 jours.
+
+Pour les versions suivantes, mettre à jour `APP_VERSION` et le changelog, puis
+pousser un tag `vX.Y.Z` : le workflow se déclenche automatiquement. La version du
+tag (ou du lancement manuel) doit correspondre à celle du code. Une release
+existante n'est pas écrasée ; un tag existant doit pointer vers le commit construit.
+Le workflow utilise le `GITHUB_TOKEN` fourni par GitHub, sans secret supplémentaire.
+
+Le DMG standard est construit sur `macos-15-intel` ; il ne garantit pas la
+compatibilité High Sierra. Le script dédié High Sierra reste à lancer dans son
+environnement spécifique. Les builds ne sont pas signés avec un certificat
+Windows ou Apple et le DMG n'est pas notarié.
 
 ## Objectif du projet
 

@@ -1,0 +1,194 @@
+name: Build and release AutoPodcast
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version attendue dans autopodcast.py
+        required: true
+        default: '1.1.11'
+        type: string
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate release version
+        id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          python3 - <<'PY'
+          import ast
+          import os
+          import re
+          from pathlib import Path
+
+          tree = ast.parse(Path('autopodcast.py').read_text(encoding='utf-8'))
+          version = next(ast.literal_eval(node.value) for node in tree.body
+                         if isinstance(node, ast.Assign)
+                         and any(isinstance(t, ast.Name) and t.id == 'APP_VERSION'
+                                 for t in node.targets))
+          expected = (os.environ['GITHUB_REF_NAME'][1:]
+                      if os.environ['GITHUB_REF_TYPE'] == 'tag'
+                      else os.environ['REQUESTED_VERSION'])
+          if not re.fullmatch(r'\d+\.\d+\.\d+', version) or version != expected:
+              raise SystemExit(f'Version mismatch: source={version}, requested={expected}')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              print(f'version={version}', file=output)
+          PY
+
+  build:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            platform: linux-x86_64
+          - os: windows-2022
+            platform: windows-x86_64
+          - os: macos-15-intel
+            platform: macos-x86_64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          architecture: x64
+      - name: Install Linux packaging dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk libtk8.6 squashfs-tools
+      - name: Install test dependencies and bundled FFmpeg
+        run: python -m pip install -r requirements.txt imageio-ffmpeg==0.6.0
+      - name: Prepare and check bundled FFmpeg
+        shell: python
+        run: |
+          import os
+          import shutil
+          import subprocess
+          import tempfile
+          from pathlib import Path
+          import imageio_ffmpeg
+
+          destination = Path('tools') / ('ffmpeg.exe' if os.name == 'nt' else 'ffmpeg')
+          destination.parent.mkdir(exist_ok=True)
+          shutil.copy2(imageio_ffmpeg.get_ffmpeg_exe(), destination)
+          destination.chmod(destination.stat().st_mode | 0o111)
+          executable = str(destination.resolve())
+          subprocess.run([executable, '-version'], check=True)
+          # Exercise the MP3 encoder and the filter used by the application.
+          with tempfile.TemporaryDirectory() as temp:
+              subprocess.run([executable, '-v', 'error', '-f', 'lavfi', '-i',
+                              'sine=frequency=440:duration=1', '-af',
+                              'dynaudnorm=f=150:g=15', '-c:a', 'libmp3lame',
+                              str(Path(temp) / 'check.mp3')], check=True)
+      - name: Check Tkinter and run regression tests
+        run: |
+          python -c "import tkinter; from PIL import ImageTk"
+          python -m unittest -v test_autopodcast
+      - name: Build Linux
+        if: runner.os == 'Linux'
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+          ARCH: x86_64
+        run: bash autopodcast_build_linux.sh "$VERSION"
+      - name: Build Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          & ./autopodcast_build_windows.ps1
+      - name: Build macOS
+        if: runner.os == 'macOS'
+        run: |
+          python -m venv .venv
+          bash autopodcast_build_macos.sh "$VERSION" macOS-x86_64
+      - name: Upload installers and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            releases/*.AppImage
+            releases/*.tar.gz
+            releases/*.zip
+            releases/*.dmg
+            releases/*.sha256
+            releases/SHA256SUMS-*.txt
+
+  release:
+    needs: [version, build]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: releases
+      - name: Verify complete release and checksums
+        run: |
+          cd releases
+          test -s "AutoPodcast-linux-x86_64-v${VERSION}.AppImage"
+          test -s "AutoPodcast-${VERSION}-linux-x86_64.tar.gz"
+          test -s "AutoPodcast-windows-x86_64-v${VERSION}.zip"
+          test -s "AutoPodcast-v${VERSION}-macOS-x86_64.dmg"
+          for checksum in *.sha256 SHA256SUMS-*.txt; do
+            sha256sum --check "$checksum"
+          done
+      - name: Prepare release notes
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          version = os.environ['VERSION']
+          changelog = Path('CHANGELOG.md').read_text(encoding='utf-8')
+          section = changelog.split(f'## [{version}]', 1)[1].split('\n## [', 1)[0]
+          notes = section.split('\n', 1)[1].strip().removesuffix('---').rstrip()
+          notes += '\n\nInstallateurs x86_64 : Linux, Windows et macOS Intel.'
+          notes += '\nLe build macOS standard ne cible pas High Sierra.\n'
+          Path('release-notes.md').write_text(notes, encoding='utf-8')
+          PY
+      - name: Publish release after all builds succeed
+        run: |
+          tag="v${VERSION}"
+          # Refuse to overwrite an existing release or retarget an existing tag.
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; refusing to overwrite it."
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+            git fetch origin "refs/tags/$tag:refs/tags/$tag"
+            test "$(git rev-parse "$tag^{commit}")" = "$(git rev-parse HEAD)"
+          fi
+          gh release create "$tag" releases/* \
+            --target "$GITHUB_SHA" \
+            --title "AutoPodcast $VERSION" \
+            --notes-file release-notes.md

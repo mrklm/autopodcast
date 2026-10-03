@@ -12,15 +12,14 @@ et le versionnement suit le principe du *Semantic Versioning*.
 
 ### Modifié
 
-- Remplacement des modes de normalisation par une seule option
-  `Améliorer le volume pour écoute voiture`.
-- Application effective du filtre ffmpeg `dynaudnorm=f=150:g=15` lorsque cette option
-  est activée.
+- Option unique d'amélioration du volume pour l'écoute en voiture (`dynaudnorm`).
 
 ### Technique
 
-- Ajout d'un script de build dédié macOS High Sierra Intel :
-  `autopodcast_build_high_sierra.sh`.
+- Builds et publication automatisés pour Linux, Windows et macOS Intel,
+  avec FFmpeg embarqué, tests et contrôle SHA256.
+- Script dédié à macOS High Sierra Intel.
+- Correction du chemin dans le fichier SHA256 macOS.
 
 ---
 

@@ -1,4 +1,4 @@
-# build_windows.ps1
+# autopodcast_build_windows.ps1
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
@@ -7,7 +7,7 @@ $ErrorActionPreference = "Stop"
 # Sortie dans ./releases/
 #
 # Usage:
-#   powershell -ExecutionPolicy Bypass -File .\build_windows.ps1
+#   powershell -ExecutionPolicy Bypass -File .\autopodcast_build_windows.ps1
 # ----------------------------------------------------
 
 $APP_NAME   = "AutoPodcast"

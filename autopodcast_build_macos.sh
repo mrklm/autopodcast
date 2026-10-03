@@ -6,8 +6,8 @@ set -euo pipefail
 # Sortie: ./releases/
 #
 # Usage:
-#   ./build_macos_release.sh 1.1.1
-#   ./build_macos_release.sh 1.1.1 macOS-x86_64
+#   ./autopodcast_build_macos.sh 1.1.11
+#   ./autopodcast_build_macos.sh 1.1.11 macOS-x86_64
 # ----------------------------------------------------
 
 APP_NAME="AutoPodcast"
@@ -122,7 +122,10 @@ hdiutil create \
   "$DMG_PATH"
 
 # ---- SHA256 -----------------------------------------
-shasum -a 256 "$DMG_PATH" > "$SHA_PATH"
+(
+  cd "$RELEASES_DIR"
+  shasum -a 256 "$DMG_NAME" > "${DMG_NAME}.sha256"
+)
 
 echo "OK: ${DMG_PATH}"
 echo "OK: ${SHA_PATH}"
