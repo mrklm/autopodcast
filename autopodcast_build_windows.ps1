@@ -103,7 +103,8 @@ Compress-Archive -Path (Join-Path $stageDir "*") -DestinationPath $ZIP_OUT
 
 # SHA256
 $sha = (Get-FileHash -Algorithm SHA256 $ZIP_OUT).Hash.ToLower()
-Set-Content -Encoding ASCII -Path $SHA_OUT -Value "$sha  $([IO.Path]::GetFileName($ZIP_OUT))"
+# Fin de ligne LF explicite pour la verification avec sha256sum sous Linux.
+[IO.File]::WriteAllText($SHA_OUT, "$sha  $([IO.Path]::GetFileName($ZIP_OUT))`n", [Text.Encoding]::ASCII)
 
 Write-Host "✅ ZIP  : $ZIP_OUT"
 Write-Host "✅ SHA  : $SHA_OUT"

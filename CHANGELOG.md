@@ -20,6 +20,7 @@ et le versionnement suit le principe du *Semantic Versioning*.
   avec FFmpeg embarqué, tests et contrôle SHA256.
 - Script dédié à macOS High Sierra Intel.
 - Correction du chemin dans le fichier SHA256 macOS.
+- Correction des fins de ligne Windows pour la vérification SHA256 sous Linux.
 
 ---
 

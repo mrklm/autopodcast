@@ -161,6 +161,8 @@ jobs:
           test -s "AutoPodcast-windows-x86_64-v${VERSION}.zip"
           test -s "AutoPodcast-v${VERSION}-macOS-x86_64.dmg"
           for checksum in *.sha256 SHA256SUMS-*.txt; do
+            # Accept checksums generated on Windows (CRLF) as well as Unix (LF).
+            sed -i 's/\r$//' "$checksum"
             sha256sum --check "$checksum"
           done
       - name: Prepare release notes
